@@ -13,14 +13,13 @@ package timeutil
 import (
 	"time"
 
-	"github.com/pkg/errors"
 	"golang.org/x/sys/windows"
 )
 
 func init() {
-	if err := windows.LoadGetSystemTimePreciseAsFileTime(); err != nil {
-		panic(errors.Wrap(err, "CockroachDB requires Windows 8 or higher"))
-	}
+	//if err := windows.LoadGetSystemTimePreciseAsFileTime(); err != nil {
+	//	panic(errors.Wrap(err, "CockroachDB requires Windows 8 or higher"))
+	//}
 }
 
 // Now returns the current UTC time.
@@ -35,6 +34,10 @@ func init() {
 // subtracting `time.Time`s.
 func Now() time.Time {
 	var ft windows.Filetime
-	windows.GetSystemTimePreciseAsFileTime(&ft)
+	if err := windows.LoadGetSystemTimePreciseAsFileTime(); err != nil {
+		windows.GetSystemTimeAsFileTime(&ft)
+	} else {
+		windows.GetSystemTimePreciseAsFileTime(&ft)
+	}
 	return time.Unix(0, ft.Nanoseconds()).UTC()
 }
